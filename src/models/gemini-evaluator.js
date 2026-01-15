@@ -99,13 +99,24 @@ Provide only the JSON response, no additional text.`;
       });
 
     } catch (error) {
-      console.error(`  Error evaluating ${file.name}:`, error.message);
-      results.fileEvaluations.push({
-        file: file.name,
-        path: file.path,
-        score: 0,
-        error: error.message
-      });
+      // Check if it's a quota error
+      if (error.message.includes('quota') || error.message.includes('429')) {
+        console.warn(`  ⚠️  Quota exceeded for ${file.name} - Gemini API limits reached`);
+        results.fileEvaluations.push({
+          file: file.name,
+          path: file.path,
+          score: 0,
+          error: 'Quota exceeded - Please upgrade Gemini API plan or wait for quota reset'
+        });
+      } else {
+        console.error(`  Error evaluating ${file.name}:`, error.message);
+        results.fileEvaluations.push({
+          file: file.name,
+          path: file.path,
+          score: 0,
+          error: error.message
+        });
+      }
     }
   }
 
