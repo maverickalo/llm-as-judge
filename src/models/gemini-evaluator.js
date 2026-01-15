@@ -29,8 +29,8 @@ export async function evaluateWithGemini(codeFiles, baseline) {
     summary: ''
   };
 
-  // Get the Gemini Pro model
-  const model = client.getGenerativeModel({ model: 'gemini-pro' });
+  // Get the Gemini model
+  const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   // Evaluate each file
   for (const file of codeFiles) {

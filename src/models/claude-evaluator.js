@@ -63,7 +63,7 @@ Return your evaluation in JSON format with the following structure:
 
       // Call Claude API
       const response = await client.messages.create({
-        model: 'claude-3-opus-20240229',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
         temperature: 0.3, // Lower temperature for more consistent evaluation
         system: systemPrompt,
@@ -121,7 +121,7 @@ Return your evaluation in JSON format with the following structure:
   // Generate summary using Claude
   try {
     const summaryResponse = await client.messages.create({
-      model: 'claude-3-opus-20240229',
+      model: 'claude-3-5-sonnet-20241022',
       max_tokens: 200,
       temperature: 0.5,
       system: 'You are a code review expert. Provide a concise summary of the code evaluation results.',
