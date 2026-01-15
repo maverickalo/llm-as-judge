@@ -76,6 +76,14 @@ async function evaluateCode() {
   const codeFiles = loadCodeFiles(argv.input);
   console.log(chalk.green(`✓ Found ${codeFiles.length} files to evaluate`));
 
+  // Log file details for better debugging
+  if (codeFiles.length > 0) {
+    console.log(chalk.gray('  Files to evaluate:'));
+    codeFiles.forEach(file => {
+      console.log(chalk.gray(`    - ${file.name}`));
+    });
+  }
+
   // Create output directory if it doesn't exist
   if (!existsSync(argv.output)) {
     mkdirSync(argv.output, { recursive: true });
