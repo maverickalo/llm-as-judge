@@ -3,8 +3,15 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini client with API key from environment
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+// Lazy initialization of Gemini client
+let genAI = null;
+
+function getGeminiClient() {
+  if (!genAI) {
+    genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+  }
+  return genAI;
+}
 
 /**
  * Evaluates code files using Gemini Pro against baseline criteria
@@ -13,6 +20,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
  * @returns {Object} Evaluation results with scores and feedback
  */
 export async function evaluateWithGemini(codeFiles, baseline) {
+  const client = getGeminiClient();
   const results = {
     model: 'gemini-pro',
     timestamp: new Date().toISOString(),
@@ -21,8 +29,8 @@ export async function evaluateWithGemini(codeFiles, baseline) {
     summary: ''
   };
 
-  // Get the Gemini Pro model
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  // Get the Gemini model (using latest stable version)
+  const model = client.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   // Evaluate each file
   for (const file of codeFiles) {
@@ -91,13 +99,24 @@ Provide only the JSON response, no additional text.`;
       });
 
     } catch (error) {
-      console.error(`  Error evaluating ${file.name}:`, error.message);
-      results.fileEvaluations.push({
-        file: file.name,
-        path: file.path,
-        score: 0,
-        error: error.message
-      });
+      // Check if it's a quota error
+      if (error.message.includes('quota') || error.message.includes('429')) {
+        console.warn(`  ⚠️  Quota exceeded for ${file.name} - Gemini API limits reached`);
+        results.fileEvaluations.push({
+          file: file.name,
+          path: file.path,
+          score: 0,
+          error: 'Quota exceeded - Please upgrade Gemini API plan or wait for quota reset'
+        });
+      } else {
+        console.error(`  Error evaluating ${file.name}:`, error.message);
+        results.fileEvaluations.push({
+          file: file.name,
+          path: file.path,
+          score: 0,
+          error: error.message
+        });
+      }
     }
   }
 

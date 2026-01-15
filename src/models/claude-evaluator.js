@@ -3,10 +3,17 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-// Initialize Anthropic client with API key from environment
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// Lazy initialization of Anthropic client
+let anthropic = null;
+
+function getAnthropicClient() {
+  if (!anthropic) {
+    anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+  }
+  return anthropic;
+}
 
 /**
  * Evaluates code files using Claude 3 against baseline criteria
@@ -15,6 +22,7 @@ const anthropic = new Anthropic({
  * @returns {Object} Evaluation results with scores and feedback
  */
 export async function evaluateWithClaude(codeFiles, baseline) {
+  const client = getAnthropicClient();
   const results = {
     model: 'claude-3',
     timestamp: new Date().toISOString(),
@@ -54,8 +62,8 @@ Return your evaluation in JSON format with the following structure:
 }`;
 
       // Call Claude API
-      const response = await anthropic.messages.create({
-        model: 'claude-3-opus-20240229',
+      const response = await client.messages.create({
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 2000,
         temperature: 0.3, // Lower temperature for more consistent evaluation
         system: systemPrompt,
@@ -112,8 +120,8 @@ Return your evaluation in JSON format with the following structure:
 
   // Generate summary using Claude
   try {
-    const summaryResponse = await anthropic.messages.create({
-      model: 'claude-3-opus-20240229',
+    const summaryResponse = await client.messages.create({
+      model: 'claude-3-5-sonnet-latest',
       max_tokens: 200,
       temperature: 0.5,
       system: 'You are a code review expert. Provide a concise summary of the code evaluation results.',

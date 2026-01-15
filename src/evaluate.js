@@ -4,7 +4,7 @@
 // This service reads code, compares it against baseline standards,
 // and generates evaluation scores from multiple AI models
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import yargs from 'yargs';
@@ -75,6 +75,14 @@ async function evaluateCode() {
   // Read code files to evaluate
   const codeFiles = loadCodeFiles(argv.input);
   console.log(chalk.green(`✓ Found ${codeFiles.length} files to evaluate`));
+
+  // Log file details for better debugging
+  if (codeFiles.length > 0) {
+    console.log(chalk.gray('  Files to evaluate:'));
+    codeFiles.forEach(file => {
+      console.log(chalk.gray(`    - ${file.name}`));
+    });
+  }
 
   // Create output directory if it doesn't exist
   if (!existsSync(argv.output)) {
@@ -186,7 +194,7 @@ function loadCodeFiles(inputPath) {
     throw new Error(`Input path does not exist: ${inputPath}`);
   }
 
-  const stats = require('fs').statSync(inputPath);
+  const stats = statSync(inputPath);
 
   if (stats.isDirectory()) {
     // Recursively read all code files
