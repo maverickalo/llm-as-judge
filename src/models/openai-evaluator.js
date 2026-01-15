@@ -3,10 +3,17 @@
 
 import OpenAI from 'openai';
 
-// Initialize OpenAI client with API key from environment
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client
+let openai = null;
+
+function getOpenAIClient() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 /**
  * Evaluates code files using GPT-4 against baseline criteria
@@ -15,6 +22,7 @@ const openai = new OpenAI({
  * @returns {Object} Evaluation results with scores and feedback
  */
 export async function evaluateWithGPT4(codeFiles, baseline) {
+  const client = getOpenAIClient();
   const results = {
     model: 'gpt-4',
     timestamp: new Date().toISOString(),
@@ -54,7 +62,7 @@ Return your evaluation in JSON format with the following structure:
 }`;
 
       // Call GPT-4 API
-      const response = await openai.chat.completions.create({
+      const response = await client.chat.completions.create({
         model: 'gpt-4-turbo-preview',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -103,7 +111,7 @@ Return your evaluation in JSON format with the following structure:
 
   // Generate summary using GPT-4
   try {
-    const summaryResponse = await openai.chat.completions.create({
+    const summaryResponse = await client.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
         {

@@ -3,8 +3,15 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini client with API key from environment
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+// Lazy initialization of Gemini client
+let genAI = null;
+
+function getGeminiClient() {
+  if (!genAI) {
+    genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+  }
+  return genAI;
+}
 
 /**
  * Evaluates code files using Gemini Pro against baseline criteria
@@ -13,6 +20,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
  * @returns {Object} Evaluation results with scores and feedback
  */
 export async function evaluateWithGemini(codeFiles, baseline) {
+  const client = getGeminiClient();
   const results = {
     model: 'gemini-pro',
     timestamp: new Date().toISOString(),
@@ -22,7 +30,7 @@ export async function evaluateWithGemini(codeFiles, baseline) {
   };
 
   // Get the Gemini Pro model
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  const model = client.getGenerativeModel({ model: 'gemini-pro' });
 
   // Evaluate each file
   for (const file of codeFiles) {
