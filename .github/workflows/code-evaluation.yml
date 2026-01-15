@@ -1,0 +1,118 @@
+# GitHub Actions workflow for LLM Code Evaluation Pipeline
+# This workflow triggers on push and pull requests to evaluate code quality
+# using multiple AI models against a baseline standard
+
+name: LLM Code Evaluation Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'code-to-evaluate/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'code-to-evaluate/**'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  evaluate-code:
+    name: Evaluate Code with LLM Judge
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Setup Node.js environment for running the evaluation service
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: npm ci
+
+      # Run linting on the evaluation service itself
+      - name: Lint Evaluation Service
+        run: npm run lint || true
+
+      # Run the LLM evaluation against OpenAI GPT-4
+      - name: Evaluate with GPT-4
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MODEL: gpt-4
+        run: |
+          echo "🤖 Evaluating code with GPT-4..."
+          npm run evaluate -- --model gpt-4 --input ./code-to-evaluate
+        continue-on-error: true
+
+      # Run the LLM evaluation against Claude 3
+      - name: Evaluate with Claude 3
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL: claude-3
+        run: |
+          echo "🤖 Evaluating code with Claude 3..."
+          npm run evaluate -- --model claude-3 --input ./code-to-evaluate
+        continue-on-error: true
+
+      # Run the LLM evaluation against Google Gemini
+      - name: Evaluate with Gemini
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          MODEL: gemini-pro
+        run: |
+          echo "🤖 Evaluating code with Gemini Pro..."
+          npm run evaluate -- --model gemini-pro --input ./code-to-evaluate
+        continue-on-error: true
+
+      # Generate evaluation report
+      - name: Generate Evaluation Report
+        run: |
+          echo "📊 Generating consolidated evaluation report..."
+          npm run evaluate -- --generate-report
+
+      # Upload evaluation results as artifacts
+      - name: Upload Evaluation Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: |
+            evaluation-results/
+            evaluation-report.html
+          retention-days: 30
+
+      # Comment on PR with evaluation summary (if PR)
+      - name: Comment PR with Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = './evaluation-results/summary.json';
+
+            if (fs.existsSync(reportPath)) {
+              const summary = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              const comment = `## 🎯 LLM Code Evaluation Results
+
+              ### Overall Score: ${summary.overallScore}/100
+
+              **GPT-4 Score:** ${summary.gpt4Score}/100
+              **Claude 3 Score:** ${summary.claude3Score}/100
+              **Gemini Pro Score:** ${summary.geminiScore}/100
+
+              [View detailed report](${context.payload.pull_request.html_url}/checks)`;
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }

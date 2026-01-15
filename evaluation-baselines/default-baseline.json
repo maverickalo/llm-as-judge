@@ -1,0 +1,179 @@
+{
+  "name": "Enterprise Code Quality Baseline",
+  "version": "1.0.0",
+  "description": "Comprehensive baseline criteria for evaluating production-ready code",
+  "lastUpdated": "2024-01-14",
+  "criteria": [
+    {
+      "id": "code-structure",
+      "category": "architecture",
+      "description": "Code follows proper architectural patterns and structure",
+      "weight": 0.15,
+      "required": true,
+      "checkpoints": [
+        "Clear separation of concerns",
+        "Proper use of design patterns",
+        "Logical file and folder organization",
+        "Consistent naming conventions",
+        "Appropriate abstraction levels"
+      ],
+      "examples": {
+        "good": "Separate business logic from presentation layer",
+        "bad": "Mixing database queries with UI rendering logic"
+      }
+    },
+    {
+      "id": "code-readability",
+      "category": "code-quality",
+      "description": "Code is easy to read, understand, and reason about",
+      "weight": 0.20,
+      "required": true,
+      "checkpoints": [
+        "Clear and descriptive variable/function names",
+        "Consistent code formatting and indentation",
+        "Appropriate use of whitespace and line breaks",
+        "Self-documenting code structure",
+        "Avoidance of overly complex expressions"
+      ],
+      "metrics": {
+        "maxLineLength": 120,
+        "maxFunctionLength": 50,
+        "maxCyclomaticComplexity": 10
+      }
+    },
+    {
+      "id": "error-handling",
+      "category": "reliability",
+      "description": "Robust error handling and recovery mechanisms",
+      "weight": 0.15,
+      "required": true,
+      "checkpoints": [
+        "Comprehensive try-catch blocks where appropriate",
+        "Graceful error recovery",
+        "Meaningful error messages",
+        "Proper error logging",
+        "No silent failures"
+      ],
+      "antipatterns": [
+        "Empty catch blocks",
+        "Catching generic exceptions without handling",
+        "Swallowing errors without logging"
+      ]
+    },
+    {
+      "id": "security-practices",
+      "category": "security",
+      "description": "Code follows security best practices and avoids vulnerabilities",
+      "weight": 0.20,
+      "required": true,
+      "checkpoints": [
+        "Input validation and sanitization",
+        "Protection against SQL injection",
+        "Protection against XSS attacks",
+        "Secure authentication and authorization",
+        "No hardcoded secrets or credentials",
+        "Proper encryption for sensitive data"
+      ],
+      "vulnerabilities": [
+        "OWASP Top 10 compliance",
+        "CWE/SANS Top 25 avoidance"
+      ]
+    },
+    {
+      "id": "performance-efficiency",
+      "category": "performance",
+      "description": "Code is optimized for performance and resource efficiency",
+      "weight": 0.10,
+      "required": false,
+      "checkpoints": [
+        "Efficient algorithms and data structures",
+        "Avoiding N+1 query problems",
+        "Proper use of caching",
+        "Lazy loading where appropriate",
+        "Memory leak prevention"
+      ],
+      "benchmarks": {
+        "responseTime": "< 200ms for API calls",
+        "memoryUsage": "Within reasonable bounds for the task"
+      }
+    },
+    {
+      "id": "test-coverage",
+      "category": "testing",
+      "description": "Comprehensive test coverage and test quality",
+      "weight": 0.15,
+      "required": true,
+      "checkpoints": [
+        "Unit tests for core functionality",
+        "Integration tests for workflows",
+        "Edge case testing",
+        "Mocking external dependencies",
+        "Test documentation and clarity"
+      ],
+      "metrics": {
+        "minCoverage": 80,
+        "criticalPathCoverage": 95
+      }
+    },
+    {
+      "id": "documentation-quality",
+      "category": "documentation",
+      "description": "Clear and comprehensive documentation",
+      "weight": 0.05,
+      "required": false,
+      "checkpoints": [
+        "Function/method documentation",
+        "Complex logic explanation",
+        "API documentation",
+        "Setup and deployment instructions",
+        "Architecture decision records"
+      ],
+      "standards": [
+        "JSDoc for JavaScript",
+        "Docstrings for Python",
+        "Javadoc for Java"
+      ]
+    }
+  ],
+  "scoringRules": {
+    "passingScore": 70,
+    "goodScore": 80,
+    "excellentScore": 90,
+    "weightingMethod": "weighted-average",
+    "penaltyForMissingRequired": 15,
+    "bonusForExceedingOptional": 5,
+    "aggregationMethod": "average"
+  },
+  "evaluationGuidelines": {
+    "severity": {
+      "critical": "Must fix - blocks deployment",
+      "major": "Should fix - significant issue",
+      "minor": "Consider fixing - improvement opportunity",
+      "info": "Informational - best practice suggestion"
+    },
+    "context": {
+      "projectType": "web-application",
+      "language": "multi-language",
+      "framework": "any",
+      "environment": "production"
+    }
+  },
+  "customRules": [
+    {
+      "rule": "no-console-logs",
+      "description": "Remove console.log statements in production code",
+      "severity": "minor",
+      "exceptions": ["debugging tools", "CLI applications"]
+    },
+    {
+      "rule": "async-await-consistency",
+      "description": "Use async/await consistently instead of mixing with promises",
+      "severity": "minor"
+    },
+    {
+      "rule": "dependency-security",
+      "description": "No known security vulnerabilities in dependencies",
+      "severity": "critical"
+    }
+  ]
+}
